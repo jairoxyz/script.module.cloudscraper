@@ -40,9 +40,9 @@ except ImportError:
     pass
 
 try:
-    from urlparse import urlparse
+    from urlparse import urlparse, urljoin
 except ImportError:
-    from urllib.parse import urlparse
+    from urllib.parse import urlparse, urljoin
 
 # Add exceptions path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'exceptions'))
@@ -50,7 +50,7 @@ import cloudflare_exceptions  # noqa: E402
 
 # ------------------------------------------------------------------------------- #
 
-__version__ = '1.2.23'
+__version__ = '1.2.24'
 
 # ------------------------------------------------------------------------------- #
 
@@ -507,30 +507,22 @@ class CloudScraper(Session):
                 cloudflare_kwargs['headers'] = updateAttr(
                     cloudflare_kwargs,
                     'headers',
-                    {'Referer': resp.url}
+                    {'Referer': challengeSubmitResponse.url}
                 )
 
                 if not urlparse(challengeSubmitResponse.headers['Location']).netloc:
-                    return self.request(
-                        resp.request.method,
-                        requests.urllib3.packages.six.moves.urllib.parse.urljoin(
-                            challengeSubmitResponse.url,
-                            challengeSubmitResponse.headers['Location']
-                        ),
-                        **cloudflare_kwargs
+                    redirect_location = urljoin(
+                        challengeSubmitResponse.url,
+                        challengeSubmitResponse.headers['Location']
                     )
                 else:
-                    cloudflare_kwargs['headers'] = updateAttr(
-                        cloudflare_kwargs,
-                        'headers',
-                        {'Referer': resp.url}
-                    )
+                    redirect_location = challengeSubmitResponse.headers['Location']
 
-                    return self.request(
-                        resp.request.method,
-                        challengeSubmitResponse.headers['Location'],
-                        **cloudflare_kwargs
-                    )
+                return self.request(
+                    resp.request.method,
+                    redirect_location,
+                    **cloudflare_kwargs
+                )
 
         # ------------------------------------------------------------------------------- #
         # We shouldn't be here...
