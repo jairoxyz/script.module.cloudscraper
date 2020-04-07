@@ -2,7 +2,7 @@
 
 Venomous cloudscraper repacked for Kodi 18+.
 
-Usage: 
+Basic usage: 
 ```
 from cloudscraper2 import CloudScraper
 scraper = CloudScraper()
@@ -16,7 +16,7 @@ scraper = cloudscraper2.create_scraper()
 ```
 
 
-To retrieve and use CF cookies in requests
+To retrieve and use CF cookies in requests:
 ```
 from cloudscraper2 import CloudScraper
 scraper = CloudScraper.create_scraper()
