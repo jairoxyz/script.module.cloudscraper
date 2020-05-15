@@ -4,7 +4,7 @@ import ast
 import re
 import operator as op
 #import pyparsing
-from . import pyparsing as pyparsing
+from . import pyparsing
 
 from ..exceptions import CloudflareSolveError
 from . import JavaScriptInterpreter
