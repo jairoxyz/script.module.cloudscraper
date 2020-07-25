@@ -2,10 +2,7 @@
 
 import logging
 import re
-try:
-    from urllib.parse import ParseResultBytes
-except:
-    pass
+
 import requests
 import sys
 import ssl
