@@ -63,7 +63,7 @@ from .user_agent import User_Agent
 
 # ------------------------------------------------------------------------------- #
 
-__version__ = '1.2.46'
+__version__ = '1.2.52'
 
 # ------------------------------------------------------------------------------- #
 
@@ -308,6 +308,27 @@ class CloudScraper(Session):
         return response
 
     # ------------------------------------------------------------------------------- #
+    # check if the response contains a valid Cloudflare Bot Fight Mode challenge
+    # ------------------------------------------------------------------------------- #
+
+    @staticmethod
+    def is_BFM_Challenge(resp):
+        try:
+            return (
+                resp.headers.get('Server', '').startswith('cloudflare')
+                and re.search(
+                    r"\/cdn-cgi\/bm\/cv\/\d+\/api\.js.*?"
+                    r"window\['__CF\$cv\$params'\]\s*=\s*{",
+                    resp.text,
+                    re.M | re.S
+                )
+            )
+        except AttributeError:
+            pass
+
+        return False
+
+    # ------------------------------------------------------------------------------- #
     # check if the response contains a valid Cloudflare challenge
     # ------------------------------------------------------------------------------- #
 
@@ -339,7 +360,7 @@ class CloudScraper(Session):
                 resp.headers.get('Server', '').startswith('cloudflare')
                 and resp.status_code in [429, 503]
                 and re.search(
-                    r'cpo.src\s*=\s*"/cdn-cgi/challenge-platform/orchestrate/jsch/v1"',
+                    r'cpo.src\s*=\s*"/cdn-cgi/challenge-platform/\S+orchestrate/jsch/v1"',
                     resp.text,
                     re.M | re.S
                 )
@@ -360,7 +381,7 @@ class CloudScraper(Session):
             return (
                 CloudScraper.is_Captcha_Challenge(resp)
                 and re.search(
-                    r'cpo.src\s*=\s*"/cdn-cgi/challenge-platform/orchestrate/captcha/v1"',
+                    r'cpo.src\s*=\s*"/cdn-cgi/challenge-platform/\S+orchestrate/captcha/v1"',
                     resp.text,
                     re.M | re.S
                 )
@@ -427,13 +448,13 @@ class CloudScraper(Session):
         if self.is_New_Captcha_Challenge(resp):
             self.simpleException(
                 CloudflareChallengeError,
-                'Detected a Cloudflare version 2 challenge, This feature is not available in the opensource (free) version.'
+                'Detected a Cloudflare version 2 Captcha challenge, This feature is not available in the opensource (free) version.'
             )
 
         if self.is_New_IUAM_Challenge(resp):
             self.simpleException(
                 CloudflareChallengeError,
-                'Detected a Cloudflare version 2 Captcha challenge, This feature is not available in the opensource (free) version.'
+                'Detected a Cloudflare version 2 challenge, This feature is not available in the opensource (free) version.'
             )
 
         if self.is_Captcha_Challenge(resp) or self.is_IUAM_Challenge(resp):
@@ -773,11 +794,12 @@ class CloudScraper(Session):
                     'browser',
                     'debug',
                     'delay',
-                    'interpreter',
+                    'doubleDown',
                     'captcha',
-                    'requestPreHook',
-                    'requestPostHook',
+                    'interpreter',
                     'source_address'
+                    'requestPreHook',
+                    'requestPostHook'
                 ] if field in kwargs
             }
         )
