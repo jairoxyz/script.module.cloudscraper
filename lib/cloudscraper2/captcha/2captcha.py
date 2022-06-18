@@ -35,7 +35,7 @@ class captchaSolver(Captcha):
     @staticmethod
     def checkErrorStatus(response, request_type):
         if response.status_code in [500, 502]:
-            raise CaptchaServiceUnavailable(f'2Captcha: Server Side Error {response.status_code}')
+            raise CaptchaServiceUnavailable('2Captcha: Server Side Error {}'.format(response.status_code))
 
         errors = {
             'in.php': {
@@ -84,7 +84,10 @@ class captchaSolver(Captcha):
         rPayload = response.json()
         if rPayload.get('status') == 0 and rPayload.get('request') in errors.get(request_type):
             raise CaptchaAPIError(
-                f"{rPayload['request']} {errors.get(request_type).get(rPayload['request'])}"
+                '{} {}'.format(
+                    rPayload['request'],
+                    errors.get(request_type).get(rPayload['request'])
+                )
             )
 
     # ------------------------------------------------------------------------------- #
@@ -103,7 +106,7 @@ class captchaSolver(Captcha):
 
         response = polling2.poll(
             lambda: self.session.get(
-                f'{self.host}/res.php',
+                '{}/res.php'.format(self.host),
                 params={
                     'key': self.api_key,
                     'action': 'reportbad',
@@ -138,7 +141,7 @@ class captchaSolver(Captcha):
 
         response = polling2.poll(
             lambda: self.session.get(
-                f'{self.host}/res.php',
+                '{}/res.php'.format(self.host),
                 params={
                     'key': self.api_key,
                     'action': 'get',
@@ -195,7 +198,7 @@ class captchaSolver(Captcha):
 
         response = polling2.poll(
             lambda: self.session.post(
-                f'{self.host}/in.php',
+                '{}/in.php'.format(self.host),
                 data=data,
                 allow_redirects=False,
                 timeout=30
@@ -247,11 +250,11 @@ class captchaSolver(Captcha):
                     self.reportJob(jobID)
             except polling2.TimeoutException:
                 raise CaptchaTimeout(
-                    f"2Captcha: Captcha solve took to long and also failed reporting the job the job id {jobID}."
+                    "2Captcha: Captcha solve took to long and also failed reporting the job the job id {}.".format(jobID)
                 )
 
             raise CaptchaTimeout(
-                f"2Captcha: Captcha solve took to long to execute job id {jobID}, aborting."
+                "2Captcha: Captcha solve took to long to execute job id {}, aborting.".format(jobID)
             )
 
 
